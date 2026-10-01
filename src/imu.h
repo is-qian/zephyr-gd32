@@ -16,6 +16,8 @@ struct imu_state {
 };
 
 int imu_init(void);
+/* Bit-bang SCL/SDA out of a slave-held bus lockup, then restore pinctrl. */
+void imu_bus_recover(void);
 /* One bounded I2C transaction per call; only call while the DXL bus is idle. */
 void imu_step(void);
 void imu_get_state(struct imu_state *out);

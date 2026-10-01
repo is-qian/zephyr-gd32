@@ -13,7 +13,9 @@
 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/pinctrl.h>
 
 #define REG_FUNC_CFG_ACCESS  0x01
 #define REG_WHO_AM_I         0x0f
@@ -39,6 +41,13 @@
 
 static const struct i2c_dt_spec imu_bus = I2C_DT_SPEC_GET(DT_NODELABEL(lsm6dsv16x));
 
+PINCTRL_DT_DEFINE(DT_NODELABEL(i2c0));
+
+static const struct gpio_dt_spec rec_scl =
+	GPIO_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), rec_gpios, 0);
+static const struct gpio_dt_spec rec_sda =
+	GPIO_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), rec_gpios, 1);
+
 static struct imu_state state;
 static uint16_t fifo_level;
 static enum { STEP_FIFO_STATUS, STEP_FIFO_DRAIN, STEP_OUT_REGS } step;
@@ -56,6 +65,37 @@ static int rd(uint8_t reg, uint8_t *buf, uint8_t len)
 static int emb_access(bool on)
 {
 	return wr(REG_FUNC_CFG_ACCESS, on ? 0x80 : 0x00);
+}
+
+/*
+ * A reset landing mid-transfer leaves the IMU holding SDA low, and the
+ * I2C driver's SRESET-based recovery cannot clear that. Clock SCL until
+ * the slave releases SDA (9 clocks max), finish with a STOP, then hand
+ * the pins back to the I2C peripheral.
+ */
+void imu_bus_recover(void)
+{
+	gpio_pin_configure_dt(&rec_sda, GPIO_INPUT | GPIO_PULL_UP);
+	gpio_pin_configure_dt(&rec_scl, GPIO_OUTPUT_INACTIVE);
+
+	for (int i = 0; i < 9; i++) {
+		gpio_pin_set_dt(&rec_scl, 1);
+		k_usleep(5);
+		if (gpio_pin_get_dt(&rec_sda) > 0) {
+			break;
+		}
+		gpio_pin_set_dt(&rec_scl, 0);
+		k_usleep(5);
+	}
+	gpio_pin_configure_dt(&rec_sda, GPIO_OUTPUT_INACTIVE);
+	k_usleep(5);
+	gpio_pin_set_dt(&rec_scl, 1);
+	k_usleep(5);
+	gpio_pin_set_dt(&rec_sda, 1);
+	k_usleep(5);
+
+	pinctrl_apply_state(PINCTRL_DT_DEV_CONFIG_GET(DT_NODELABEL(i2c0)),
+			    PINCTRL_STATE_DEFAULT);
 }
 
 int imu_init(void)

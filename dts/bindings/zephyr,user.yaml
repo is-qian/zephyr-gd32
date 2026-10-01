@@ -14,3 +14,8 @@ properties:
     type: phandle-array
     required: true
     description: ADC input channel (PA1/ADC0)
+
+  rec-gpios:
+    type: phandle-array
+    required: true
+    description: I2C0 bus recovery bit-bang pins (SCL=PB6, SDA=PB7)

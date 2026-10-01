@@ -77,7 +77,9 @@ static void sensor_thread(void *p1, void *p2, void *p3)
 			uint32_t now = k_uptime_get_32();
 
 			if ((int32_t)(now - imu_retry_at) >= 0) {
-				imu_init();
+				if (imu_init() < 0) {
+					imu_bus_recover();
+				}
 				imu_retry_at = now + IMU_RETRY_MS;
 			}
 			k_sleep(K_MSEC(10));

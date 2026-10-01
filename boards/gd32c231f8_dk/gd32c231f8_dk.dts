@@ -24,6 +24,8 @@
 		adc-ctl-gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
 		/* PA1 = ADC0_IN1: Vbat divider sample (Vbat = Vadc x 2.8) */
 		io-channels = <&adc0 1>;
+		/* I2C0 bus recovery bit-bang (SCL, SDA) */
+		rec-gpios = <&gpiob 6 GPIO_OPEN_DRAIN>, <&gpiob 7 GPIO_OPEN_DRAIN>;
 	};
 };
 
