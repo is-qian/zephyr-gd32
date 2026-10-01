@@ -41,8 +41,8 @@ jobs:
 
       - name: Apply fork patches
         run: |
-          git -C zephyrproject/zephyr apply patches/gd32_zephyr/*.patch
-          git -C zephyrproject/modules/hal/gigadevice apply patches/hal_gigadevice_zephyr/*.patch
+          git -C zephyrproject/zephyr apply "$GITHUB_WORKSPACE"/patches/gd32_zephyr/*.patch
+          git -C zephyrproject/modules/hal/gigadevice apply "$GITHUB_WORKSPACE"/patches/hal_gigadevice_zephyr/*.patch
 
       - name: Build firmware
         run: |
