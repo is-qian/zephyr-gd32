@@ -1,0 +1,86 @@
+Fix GD32C231 I2C0 alternate function numbers on PB6/PB7.
+
+Per GD32C231xx datasheet Table 2-13: I2C0_SCL_PB6 = AF6, I2C0_SDA_PB7 =
+AF6, I2C0_SCL_PB7 = AF15, I2C0_SMBA_PB6 = AF7. The previous AF4 values
+left the I2C0 peripheral unconnected to the pads (AF4 on PB6 is
+USART0_RTS_DE_CK), so a master transfer stalled forever after START with
+no ACK/NACK. Also fixes the matching entries in pinconfigs/gd32c231xx.yml
+(the generation source of the pinctrl headers).
+
+Apply inside the zephyrproject workspace:
+    cd <zephyrproject>/modules/hal/gigadevice && git apply <this file>
+
+diff --git a/include/dt-bindings/pinctrl/gd32c231f(6)xx-pinctrl.h b/include/dt-bindings/pinctrl/gd32c231f(6)xx-pinctrl.h
+index aa88757..b5e151f 100644
+--- a/include/dt-bindings/pinctrl/gd32c231f(6)xx-pinctrl.h
++++ b/include/dt-bindings/pinctrl/gd32c231f(6)xx-pinctrl.h
+@@ -162,21 +162,21 @@
+ #define I2C0_SCL_PA9 \
+ 	GD32_PINMUX_AF('A', 9, AF6)
+ #define I2C0_SCL_PB6 \
+-	GD32_PINMUX_AF('B', 6, AF4)
++	GD32_PINMUX_AF('B', 6, AF6)
+ #define I2C0_SCL_PB7 \
+-	GD32_PINMUX_AF('B', 7, AF4)
++	GD32_PINMUX_AF('B', 7, AF15)
+ 
+ /* I2C0_SDA */
+ #define I2C0_SDA_PA10 \
+ 	GD32_PINMUX_AF('A', 10, AF6)
+ #define I2C0_SDA_PB7 \
+-	GD32_PINMUX_AF('B', 7, AF4)
++	GD32_PINMUX_AF('B', 7, AF6)
+ 
+ /* I2C0_SMBA */
+ #define I2C0_SMBA_PA1 \
+ 	GD32_PINMUX_AF('A', 1, AF6)
+ #define I2C0_SMBA_PB6 \
+-	GD32_PINMUX_AF('B', 6, AF4)
++	GD32_PINMUX_AF('B', 6, AF7)
+ 
+ /* I2S0_CK */
+ #define I2S0_CK_PA1 \
+diff --git a/pinconfigs/gd32c231xx.yml b/pinconfigs/gd32c231xx.yml
+index e3b9a8e..c9632d2 100644
+--- a/pinconfigs/gd32c231xx.yml
++++ b/pinconfigs/gd32c231xx.yml
+@@ -336,8 +336,8 @@ pins:
+       TIMER2_CH2: 2
+       USART0_RTS_DE_CK: 7
+       USART0_CTS: 7
+-      I2C0_SCL: 4
+-      I2C0_SMBA: 4
++      I2C0_SCL: 6
++      I2C0_SMBA: 7
+       SPI0_MOSI: 5
+       I2S0_SD: 5
+       SPI0_MISO: 5
+@@ -356,13 +356,13 @@ pins:
+       TIMER0_CH3: 1
+       TIMER16_CH0_ON: 2
+       TIMER2_CH3: 2
+-      SPI1_MOSI: 5
+-      I2C0_SDA: 4
++      SPI1_MOSI: 4
++      I2C0_SDA: 6
+       USART1_CTS: 7
+       TIMER15_CH0: 2
+       TIMER2_CH0: 2
+-      I2C0_SCL: 4
+-      EVENTOUT: 15
++      I2C0_SCL: 15
++      EVENTOUT: 7
+     pincodes: [F, G, K, C]
+   PB8:
+     afs:
+@@ -370,8 +370,8 @@ pins:
+       USART1_CTS: 7
+       TIMER15_CH0: 2
+       TIMER2_CH0: 2
+-      I2C0_SCL: 4
+-      EVENTOUT: 15
++      I2C0_SCL: 15
++      EVENTOUT: 7
+     pincodes: [G, K, C]
+   PB9:
+     afs:

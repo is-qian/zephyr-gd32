@@ -1,0 +1,30 @@
+diff --git a/drivers/i2c/i2c_gd32_v2.c b/drivers/i2c/i2c_gd32_v2.c
+index 30ab02f2881..35811661fd5 100644
+--- a/drivers/i2c/i2c_gd32_v2.c
++++ b/drivers/i2c/i2c_gd32_v2.c
+@@ -814,7 +814,11 @@ static int i2c_gd32_msg_read(const struct device *dev)
+ 	/* PIO mode transfer */
+ 	i2c_gd32_xfer_begin(dev);
+ 
+-	k_sem_take(&data->sync_sem, K_FOREVER);
++	/* A silent or NACKing slave must not hang the caller forever. */
++	if (k_sem_take(&data->sync_sem, K_MSEC(100)) != 0) {
++		LOG_ERR("PIO transfer timeout");
++		data->errs |= I2C_GD32_ERR_AERR;
++	}
+ 
+ 	return i2c_gd32_xfer_end(dev);
+ }
+@@ -879,7 +883,11 @@ static int i2c_gd32_msg_write(const struct device *dev)
+ 	/* PIO mode transfer */
+ 	i2c_gd32_xfer_begin(dev);
+ 
+-	k_sem_take(&data->sync_sem, K_FOREVER);
++	/* A silent or NACKing slave must not hang the caller forever. */
++	if (k_sem_take(&data->sync_sem, K_MSEC(100)) != 0) {
++		LOG_ERR("PIO transfer timeout");
++		data->errs |= I2C_GD32_ERR_AERR;
++	}
+ 
+ 	return i2c_gd32_xfer_end(dev);
+ }

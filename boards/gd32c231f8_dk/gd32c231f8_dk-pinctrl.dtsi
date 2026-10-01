@@ -1,0 +1,26 @@
+/*
+ * GD32C231F8P6 (TSSOP20) pinmux
+ */
+
+#include <dt-bindings/pinctrl/gd32c231f(6)xx-pinctrl.h>
+
+&pinctrl {
+	usart0_default: usart0_default {
+		group1 {
+			pinmux = <USART0_TX_PA9>, <USART0_RX_PA10>;
+		};
+	};
+
+	i2c0_default: i2c0_default {
+		group1 {
+			pinmux = <I2C0_SCL_PB6>, <I2C0_SDA_PB7>;
+			drive-open-drain;
+		};
+	};
+
+	adc0_default: adc0_default {
+		group1 {
+			pinmux = <ADC_IN1_PA1>;
+		};
+	};
+};

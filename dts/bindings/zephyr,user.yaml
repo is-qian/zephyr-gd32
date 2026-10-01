@@ -1,0 +1,16 @@
+description: Application-specific IO pins (ADC control, ADC input channel)
+
+compatible: "zephyr,user"
+
+include: [base.yaml]
+
+properties:
+  adc-ctl-gpios:
+    type: phandle-array
+    required: true
+    description: ADC_CTL power-enable GPIO (PA0)
+
+  io-channels:
+    type: phandle-array
+    required: true
+    description: ADC input channel (PA1/ADC0)

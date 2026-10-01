@@ -1,0 +1,2 @@
+config BOARD_GD32C231F8_DK
+	select SOC_GD32C231

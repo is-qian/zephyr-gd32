@@ -1,0 +1,77 @@
+Add GD32C2X1 support to the GD32 ADC driver.
+
+Required to build/run on GD32C231: sample-time table for C2X1, skip the
+calibration sequence (C2X1 has none), CK_SYS/2 ADC clock, software trigger
+as external trigger source, and CTL0_DRES resolution config.
+
+Apply inside the zephyrproject workspace:
+    cd <zephyrproject>/zephyr && git apply <this file>
+
+diff --git a/drivers/adc/adc_gd32.c b/drivers/adc/adc_gd32.c
+index 4bf049488..1282f6cd2 100644
+--- a/drivers/adc/adc_gd32.c
++++ b/drivers/adc/adc_gd32.c
+@@ -160,6 +160,20 @@ static const uint32_t table_samp_time[] = {
+ 	SMP_TIME(143),
+ 	SMP_TIME(479)
+ };
++#elif defined(CONFIG_SOC_SERIES_GD32C2X1)
++#define SMP_TIME(x) ADC_SAMPLETIME_##x##POINT5
++
++static const uint16_t acq_time_tbl[8] = {3, 4, 8, 13, 20, 40, 80, 161};
++static const uint32_t table_samp_time[] = {
++	SMP_TIME(2),
++	SMP_TIME(3),
++	SMP_TIME(7),
++	SMP_TIME(12),
++	SMP_TIME(19),
++	SMP_TIME(39),
++	SMP_TIME(79),
++	SMP_TIME(160)
++};
+ #else
+ #define SMP_TIME(x) ADC_SAMPLETIME_##x##POINT5
+ 
+@@ -345,8 +359,8 @@ static void adc_context_update_buffer_pointer(struct adc_context *ctx,
+ 
+ static inline void adc_gd32_calibration(const struct adc_gd32_config *cfg)
+ {
+-#if defined(CONFIG_SOC_SERIES_GD32F50X)
+-	/* GD32F50x ADC has no calibration sequence. */
++#if defined(CONFIG_SOC_SERIES_GD32F50X) || defined(CONFIG_SOC_SERIES_GD32C2X1)
++	/* GD32F50x/GD32C2x1 ADC has no calibration sequence. */
+ 	ARG_UNUSED(cfg);
+ #else
+ 	ADC_CTL1(cfg->reg) |= ADC_CTL1_RSTCLB;
+@@ -579,7 +593,8 @@ static int adc_gd32_start_read(const struct device *dev,
+ 	defined(CONFIG_SOC_SERIES_GD32H7XX) || \
+ 	defined(CONFIG_SOC_SERIES_GD32H75E) || \
+ 	defined(CONFIG_SOC_SERIES_GD32F3X0) || \
+-	defined(CONFIG_SOC_SERIES_GD32L23X)
++	defined(CONFIG_SOC_SERIES_GD32L23X) || \
++	defined(CONFIG_SOC_SERIES_GD32C2X1)
+ 	ADC_CTL0(cfg->reg) &= ~ADC_CTL0_DRES;
+ 	ADC_CTL0(cfg->reg) |= CTL0_DRES(resolution_id);
+ #elif defined(CONFIG_SOC_SERIES_GD32F403) || defined(CONFIG_SOC_SERIES_GD32A50X) || \
+@@ -712,6 +727,11 @@ static int adc_gd32_init(const struct device *dev)
+ 	rcu_adc_clock_config(cfg->rcu_clock_source);
+ #endif
+ 
++#if defined(CONFIG_SOC_SERIES_GD32C2X1)
++	/* CK_SYS / 2 = 24MHz ADC clock. */
++	rcu_adc_clock_config(RCU_ADCSRC_CKSYS, RCU_ADCCK_DIV2);
++#endif
++
+ #if defined(CONFIG_SOC_SERIES_GD32H7XX) || defined(CONFIG_SOC_SERIES_GD32H75E)
+ 	adc_clock_config(cfg->reg, cfg->rcu_clock_source);
+ 
+@@ -741,7 +761,8 @@ static int adc_gd32_init(const struct device *dev)
+ 
+ #if defined(CONFIG_SOC_SERIES_GD32VF103) || \
+ 	defined(CONFIG_SOC_SERIES_GD32F3X0) || \
+-	defined(CONFIG_SOC_SERIES_GD32L23X)
++	defined(CONFIG_SOC_SERIES_GD32L23X) || \
++	defined(CONFIG_SOC_SERIES_GD32C2X1)
+ 	/* Set SWRCST as the regular channel external trigger. */
+ 	ADC_CTL1(cfg->reg) &= ~ADC_CTL1_ETSRC;
+ 	ADC_CTL1(cfg->reg) |= CTL1_ETSRC(7);

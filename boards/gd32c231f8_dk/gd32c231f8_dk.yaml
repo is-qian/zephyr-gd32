@@ -1,0 +1,14 @@
+identifier: gd32c231f8_dk
+name: GD32C231F8-DK
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 12
+flash: 64
+supported:
+  - gpio
+  - uart
+  - i2c
+  - adc

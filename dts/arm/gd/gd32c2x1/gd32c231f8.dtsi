@@ -1,0 +1,38 @@
+/*
+ * GD32C231F8 (TSSOP20, 64K flash / 12K SRAM)
+ *
+ * The upstream gd32c2x1.dtsi lacks i2c0/adc0 nodes; they are added here.
+ */
+
+#include <gd/gd32c2x1/gd32c2x1.dtsi>
+
+&flash0 {
+	reg = <0x08000000 DT_SIZE_K(64)>;
+	page-size = <DT_SIZE_K(1)>;
+};
+
+&{/soc} {
+	i2c0: i2c@40005400 {
+		compatible = "gd,gd32-i2c-v2";
+		reg = <0x40005400 0x400>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupts = <17 0>, <18 0>;
+		interrupt-names = "event", "error";
+		clocks = <&cctl GD32_CLOCK_I2C0>;
+		resets = <&rctl GD32_RESET_I2C0>;
+		status = "disabled";
+	};
+
+	adc0: adc@40012400 {
+		compatible = "gd,gd32-adc";
+		reg = <0x40012400 0x400>;
+		interrupts = <13 0>;
+		clocks = <&cctl GD32_CLOCK_ADC>;
+		resets = <&rctl GD32_RESET_ADC>;
+		channels = <13>;
+		vref-mv = <3300>;
+		#io-channel-cells = <1>;
+		status = "disabled";
+	};
+};
